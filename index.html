@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glosario — Interfaces de Usuario</title>
+<style>
+:root{
+  --azul:#2F6BFF; --azul-oscuro:#1F3FD1;
+  --rojo:#FF3D77; --amarillo:#FFB800;
+  --blanco:#FFFFFF; --panel:#EEF3FF; --negro:#1A1D29; --gris:#5B6478;
+  --borde:#D5DDFB; --icon-bg:#FFE3EC; --letra-fondo: rgba(47,107,255,.10);
+  --grad:linear-gradient(135deg,#2F6BFF 0%,#8A3FFC 55%,#FF3D77 100%);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html[data-theme="dark"]{
+  --azul:#5C9CFF; --azul-oscuro:#A9C8FF;
+  --rojo:#FF6B9A; --amarillo:#FFD24D;
+  --blanco:#0F1220; --panel:#181C33; --negro:#F1F3FF; --gris:#A3ABC7;
+  --borde:#2E3560; --icon-bg:#3B1E33; --letra-fondo: rgba(140,170,255,.10);
+  --grad:linear-gradient(135deg,#3B5BDB 0%,#7B2FF7 55%,#E5306B 100%);
+}
+*{box-sizing:inherit}
+html{scroll-padding-top:70px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;overflow-x:hidden;-webkit-tap-highlight-color:transparent;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--negro);background:var(--blanco);line-height:1.5;transition:background .3s,color .3s}
+h1,h2,h3{margin:0 0 .4em;overflow-wrap:anywhere}
+p{margin:0 0 1em}
+
+#bgCanvas{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;background:var(--grad);border-bottom:3px solid var(--amarillo);padding:12px 18px;box-shadow:0 4px 14px rgba(47,63,209,.25)}
+#menuBtn,#themeBtn,#musicBtn{min-width:44px;min-height:44px;flex-shrink:0;background:none;border:none;font-size:20px;cursor:pointer;color:#fff;padding:4px 8px;border-radius:8px}
+#menuBtn{font-size:24px}
+#menuBtn:hover,#themeBtn:hover,#musicBtn:hover{background:rgba(255,255,255,.25)}
+#musicBtn.on{background:var(--amarillo);animation:pulso 1.4s infinite}
+@keyframes pulso{50%{box-shadow:0 0 0 6px rgba(255,184,0,.35)}}
+.site-title{font-weight:800;font-size:18px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sidebar .site-title{color:var(--azul-oscuro)}
+.spacer{flex:1}
+
+.overlay{position:fixed;inset:0;background:rgba(10,15,20,.4);opacity:0;pointer-events:none;transition:opacity .25s;z-index:35}
+.overlay.show{opacity:1;pointer-events:auto}
+
+.sidebar{position:fixed;top:0;left:0;bottom:0;height:100dvh;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;width:min(300px,82vw);background:var(--blanco);border-right:2px solid var(--borde);
+  transform:translateX(-100%);transition:transform .28s ease;z-index:40;display:flex;flex-direction:column;padding:16px}
+.sidebar.open{transform:translateX(0)}
+.sidebar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-shrink:0}
+#closeMenu{min-width:44px;min-height:44px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gris)}
+.nav-link{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;font-weight:700;font-size:16px;
+  color:var(--negro);padding:12px 10px;border-radius:10px;cursor:pointer;flex-shrink:0}
+.nav-link:hover{background:var(--panel)}
+#glosarioLabel{font-weight:700;font-size:13.5px;letter-spacing:.03em;color:var(--gris);margin:6px 10px 4px;flex-shrink:0}
+.term-scroll{flex:1;min-height:0;overflow-y:auto;border-top:1px solid var(--borde);padding-top:4px;margin-top:2px}
+.term-link{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;font-size:14.5px;color:var(--gris);
+  padding:12px 10px;cursor:pointer;border-radius:8px}
+.term-link:hover,.term-link.active{background:var(--icon-bg);color:var(--negro)}
+.nav-link.act{background:var(--grad);color:#fff}
+
+main{max-width:960px;margin:0 auto;padding:26px max(20px,env(safe-area-inset-right,0px)) 60px max(20px,env(safe-area-inset-left,0px));position:relative}
+.vista{display:none}
+.vista.active{display:block}
+
+.hero{background:var(--grad);color:#fff;border-radius:18px;padding:30px;box-shadow:0 10px 30px rgba(138,63,252,.3)}
+.hero h1{color:#fff;font-size:clamp(24px,4vw,34px)}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{background:var(--amarillo);border:2px solid var(--amarillo);color:#1A1D29;font-weight:800;font-size:12.5px;
+  padding:6px 14px;border-radius:999px}
+.card-plain{border:2px solid var(--borde);border-left:6px solid var(--rojo);border-radius:14px;padding:20px;margin-top:18px;background:var(--panel)}
+.card-plain h3{color:var(--azul-oscuro)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:20px}
+.card{border:2px solid var(--borde);border-radius:14px;background:var(--blanco);cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px;
+  transition:border-color .2s,box-shadow .2s,background .15s,transform .2s}
+@media (hover:hover){.card:hover{border-color:var(--rojo);transform:translateY(-3px);box-shadow:0 8px 18px rgba(255,61,119,.2)}}
+.card:active{background:var(--panel);border-color:var(--azul-oscuro);box-shadow:inset 0 0 0 2px var(--azul-oscuro)}
+.icon{width:42px;height:42px;min-width:42px;border-radius:50%;background:var(--icon-bg);display:flex;
+  align-items:center;justify-content:center;font-size:20px}
+.grid .card:nth-child(4n+1) .icon{background:#FFE3EC}
+.grid .card:nth-child(4n+2) .icon{background:#DDE8FF}
+.grid .card:nth-child(4n+3) .icon{background:#FFF1C9}
+.grid .card:nth-child(4n) .icon{background:#E4D9FF}
+.card h3{font-size:15px;margin:0}
+
+.back{background:none;border:none;color:var(--azul-oscuro);font:inherit;font-weight:700;font-size:14.5px;cursor:pointer;padding:6px 0;margin-bottom:14px}
+.term-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.term-head .icon{width:54px;height:54px;font-size:26px}
+.term-head h1{font-size:26px;margin:0}
+.panel-box{border:2px solid var(--borde);border-radius:14px;padding:18px 20px;margin-top:14px;background:var(--blanco)}
+.label{font-weight:700;font-size:12px;letter-spacing:.03em;color:var(--rojo);margin-bottom:4px}
+.label.b{color:var(--azul-oscuro)}
+.txt{font-size:15px;color:var(--negro);margin:0}
+
+/* Guía de interfaz e Info */
+.guia{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:12px}
+.guia div{border-radius:12px;padding:14px;background:var(--blanco);border:2px solid var(--borde)}
+.guia div:nth-child(1){border-color:#2F6BFF}.guia div:nth-child(2){border-color:#FF3D77}
+.guia div:nth-child(3){border-color:#FFB800}.guia div:nth-child(4){border-color:#8A3FFC}
+.guia b{display:block;margin-bottom:4px;color:var(--azul-oscuro)}
+.guia span{font-size:14px;color:var(--negro)}
+.perfil{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.avatar{width:84px;height:84px;border-radius:50%;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;box-shadow:0 6px 16px rgba(138,63,252,.35)}
+.datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.dato{border:2px solid var(--borde);border-radius:14px;padding:16px;background:var(--blanco)}
+.dato .label{margin-bottom:6px}
+.dato p{margin:0;font-size:16px;font-weight:700;word-break:break-word}
+.dato a{color:var(--azul);text-decoration:none}
+.dato a:hover{text-decoration:underline}
+.btn-wa{display:inline-block;margin-top:10px;background:#25D366;color:#fff!important;font-weight:800;font-size:14px;padding:8px 16px;border-radius:999px;text-decoration:none!important}
+img,canvas,svg{max-width:100%}
+footer{text-align:center;color:var(--gris);font-size:12.5px;padding:20px;border-top:2px solid var(--borde)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:820px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+}
+@media (max-width:600px){
+  header{padding:8px 10px;gap:4px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+  .site-title{font-size:15px}
+  main{padding-top:18px;padding-bottom:40px}
+  .hero{padding:20px 16px;border-radius:14px}
+  .hero p{font-size:15px}
+  .chip{font-size:12px;padding:5px 11px}
+  .card-plain{padding:16px;border-radius:12px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .card{flex-direction:column;text-align:center;justify-content:center;gap:8px;padding:14px 8px;min-height:104px}
+  .card h3{font-size:13.5px;line-height:1.25}
+  .icon{width:44px;height:44px;min-width:44px}
+  .term-head{gap:10px}
+  .term-head .icon{width:46px;height:46px;min-width:46px;font-size:22px}
+  .term-head h1{font-size:21px}
+  .panel-box{padding:14px 16px}
+  .txt{font-size:15.5px}
+  .back{min-height:44px;font-size:15px}
+  .guia{grid-template-columns:1fr}
+  .perfil{flex-direction:column;text-align:center;gap:12px}
+  .avatar{width:76px;height:76px;font-size:30px}
+  .datos{grid-template-columns:1fr;gap:10px}
+  .dato{padding:14px}
+  .dato p{font-size:15px}
+  .btn-wa{display:block;text-align:center;padding:12px 16px}
+  .nav-link{padding:14px 10px}
+  footer{font-size:12px;padding:16px 12px}
+}
+@media (max-width:360px){
+  .site-title{font-size:13.5px}
+  .grid{gap:8px}
+  .card h3{font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<header>
+  <button id="menuBtn" aria-label="Abrir menú">&#9776;</button>
+  <span class="site-title">Glosario — Interfaces de Usuario</span>
+  <div class="spacer"></div>
+  <button id="musicBtn" aria-label="Música de fondo" title="Música de fondo">&#128264;</button>
+  <button id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema">&#127769;</button>
+</header>
+
+<div class="overlay" id="overlay"></div>
+
+<nav class="sidebar" id="sidebar" aria-label="Menú principal">
+  <div class="sidebar-head">
+    <span class="site-title">Menú</span>
+    <button id="closeMenu" aria-label="Cerrar menú">&#10005;</button>
+  </div>
+  <button class="nav-link" data-view="inicio">Inicio</button>
+  <button class="nav-link" data-view="glosario">Glosario</button>
+  <button class="nav-link" data-view="info">Info</button>
+  <div id="glosarioLabel">Ir directo a un término</div>
+  <div class="term-scroll" id="glosarioList"></div>
+</nav>
+
+<main>
+  <section class="vista active" id="vista-inicio">
+    <div class="hero">
+      <h1>HTML y la Interfaz de Usuario</h1>
+      <p><strong>HTML</strong> (HyperText Markup Language) es el lenguaje de marcado estándar que se usa para estructurar el contenido de una página web: define títulos, párrafos, imágenes, botones y enlaces mediante etiquetas. Es la base sobre la que luego se aplican los estilos (CSS) y el comportamiento (JavaScript).</p>
+      <p>La <strong>Interfaz de Usuario (UI)</strong> es el conjunto de elementos visuales y de interacción — botones, menús, íconos, pantallas — mediante los cuales una persona se comunica con un sistema. En la práctica, el HTML construye el esqueleto de esa interfaz: cada botón o menú que ves en una página web nace de una etiqueta HTML.</p>
+      <div class="chip-row">
+        <span class="chip">HTML</span>
+        <span class="chip">UI</span>
+        <span class="chip">UX</span>
+        <span class="chip">20 términos</span>
+      </div>
+    </div>
+    <div class="card-plain">
+      <h3>¿Qué vas a encontrar aquí?</h3>
+      <p class="txt" style="margin-bottom:0">Un glosario con 20 conceptos esenciales de diseño de interfaces y desarrollo web. Abre el menú de la esquina superior izquierda, entra a «Glosario» y toca cualquier término para abrir su página dedicada, con definición, importancia, ejemplo y un dato adicional.</p>
+    </div>
+    <div class="card-plain">
+      <h3>Introducción a la interfaz de este sitio</h3>
+      <p class="txt">Esta página es en sí misma un ejemplo de interfaz de usuario. Cada control que ves cumple una función y está pensado para que navegues sin esfuerzo:</p>
+      <div class="guia">
+        <div><b>&#9776; Menú</b><span>Abre el panel lateral para ir a Inicio, Glosario, Info o saltar directo a un término.</span></div>
+        <div><b>&#128264; Música</b><span>Activa o silencia una melodía ambiental de fondo. El botón se ilumina cuando suena.</span></div>
+        <div><b>&#127769; Tema</b><span>Alterna entre modo claro y oscuro para leer cómodamente a cualquier hora.</span></div>
+        <div><b>&#128203; Tarjetas</b><span>En el Glosario, toca una tarjeta para ver definición, importancia, ejemplo y dato extra.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" id="vista-info">
+    <div class="hero">
+      <div class="perfil">
+        <div class="avatar">RS</div>
+        <div>
+          <h1 style="margin-bottom:4px">Rolando Sánchez</h1>
+          <p style="margin:0">Autor de este glosario · Ciudad de Panamá</p>
+        </div>
+      </div>
+    </div>
+    <div class="datos">
+      <div class="dato"><div class="label">NOMBRE</div><p>Rolando Sánchez</p></div>
+      <div class="dato"><div class="label b">EDAD</div><p>18 años</p></div>
+      <div class="dato"><div class="label">FECHA DE NACIMIENTO</div><p>24 de julio de 2008</p></div>
+      <div class="dato"><div class="label b">LUGAR DE NACIMIENTO</div><p>Ciudad de Panamá</p></div>
+      <div class="dato"><div class="label">CORREO</div><p><a href="mailto:rolandosanchezmontecer@hotmail.com">rolandosanchezmontecer@hotmail.com</a></p></div>
+      <div class="dato"><div class="label b">WHATSAPP</div><p>6733-4892</p><a class="btn-wa" href="https://wa.me/50767334892" target="_blank" rel="noopener">Escribir por WhatsApp</a></div>
+    </div>
+  </section>
+
+  <section class="vista" id="vista-glosario">
+    <h1>Glosario</h1>
+    <p>20 conceptos de UI, UX y desarrollo web. Toca un término para abrir su página.</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="vista" id="vista-termino">
+    <button class="back" id="backBtn">&larr; Volver al glosario</button>
+    <div class="term-head">
+      <div class="icon" id="tIcon"></div>
+      <h1 id="tNombre"></h1>
+    </div>
+    <div class="panel-box"><div class="label b">Definición</div><p class="txt" id="tDef"></p></div>
+    <div class="panel-box"><div class="label b">Importancia</div><p class="txt" id="tImp"></p></div>
+    <div class="panel-box"><div class="label">Ejemplo</div><p class="txt" id="tEj"></p></div>
+    <div class="panel-box"><div class="label">Dato adicional</div><p class="txt" id="tExtra"></p></div>
+  </section>
+
+  <footer>Glosario — Unidad 1: Introducción al Diseño de Interfaces</footer>
+</main>
+
+<script>
+const terminos = [
+{n:"Interfaz de Usuario (UI)",icono:"&#128421;",def:"Conjunto de elementos visuales y de interacción (botones, menús, íconos, pantallas) mediante los cuales una persona se comunica con un sistema o dispositivo.",imp:"Es el punto de contacto directo entre el usuario y el producto; una UI clara facilita el uso y reduce los errores.",ej:"Los botones, la barra de navegación y los íconos de una app de banca móvil.",extra:"En el desarrollo web, la UI se construye principalmente con HTML (estructura) y CSS (apariencia), y cobra vida con JavaScript."},
+{n:"Experiencia de Usuario (UX)",icono:"&#128578;",def:"Percepción y emociones que experimenta una persona al usar un producto o servicio, considerando su facilidad, utilidad y satisfacción.",imp:"Determina si el usuario logra sus objetivos sin frustración, influyendo directamente en su fidelidad hacia el producto.",ej:"El proceso completo de comprar un boleto de avión en un sitio web, desde la búsqueda hasta la confirmación.",extra:"El UX abarca toda la experiencia, no solo la pantalla: incluye la velocidad de carga, el soporte al cliente y hasta el empaque de un producto físico."},
+{n:"Interacción Humano-Computadora (HCI)",icono:"&#129309;",def:"Disciplina que estudia cómo las personas interactúan con los sistemas informáticos y cómo diseñar esa interacción de forma eficiente.",imp:"Aporta los principios teóricos que sustentan el diseño de interfaces usables y accesibles.",ej:"Estudiar cómo reaccionan los usuarios al utilizar comandos de voz en un asistente virtual.",extra:"Nació como campo académico combinando psicología, diseño y ciencias de la computación."},
+{n:"Prototipo",icono:"&#129513;",def:"Representación preliminar e interactiva de un producto que simula su funcionamiento antes del desarrollo final.",imp:"Permite probar ideas, detectar errores y recoger retroalimentación temprana, ahorrando tiempo y recursos.",ej:"Un prototipo navegable en Figma que simula el flujo de registro de una app.",extra:"Puede ser tan simple como papel y lápiz, o tan avanzado como una app funcional a medias."},
+{n:"Wireframe",icono:"&#128208;",def:"Esquema visual simple, sin colores ni detalles gráficos, que muestra la disposición de los elementos de una pantalla.",imp:"Ayuda a definir la estructura y jerarquía de contenidos antes de invertir en diseño visual detallado.",ej:"Un boceto en blanco y negro que muestra dónde irán el logo, el menú y el contenido principal de una web.",extra:"Suele dibujarse en escala de grises para que el equipo se enfoque en la estructura y no en el color."},
+{n:"Usabilidad",icono:"&#9989;",def:"Facilidad con la que un usuario puede aprender a usar una interfaz y lograr sus objetivos de forma eficiente y sin errores.",imp:"Una alta usabilidad reduce la curva de aprendizaje y mejora la satisfacción del usuario.",ej:"Un formulario que valida los datos en tiempo real y muestra mensajes claros de error.",extra:"Se mide con métricas como la tasa de error, el tiempo de tarea y la satisfacción reportada por el usuario."},
+{n:"Accesibilidad",icono:"&#9855;",def:"Diseño de productos digitales que pueden ser usados por todas las personas, incluyendo quienes tienen alguna discapacidad.",imp:"Garantiza la inclusión digital y amplía el alcance del producto a más usuarios.",ej:"Agregar texto alternativo a las imágenes para que los lectores de pantalla puedan describirlas.",extra:"Las pautas WCAG son el estándar internacional más usado para evaluarla."},
+{n:"Carga Cognitiva",icono:"&#129504;",def:"Cantidad de esfuerzo mental que una persona debe realizar para procesar la información de una interfaz.",imp:"Reducirla evita la fatiga y la confusión del usuario, mejorando la eficiencia en el uso del sistema.",ej:"Simplificar un menú de 20 opciones agrupándolas en categorías más claras.",extra:"Un diseño con demasiadas opciones a la vez satura al usuario; mostrar menos elementos suele ser más claro."},
+{n:"CTA (Call To Action)",icono:"&#128073;",def:"Elemento visual, generalmente un botón, que invita al usuario a realizar una acción específica.",imp:"Guía al usuario hacia los objetivos clave del producto, como comprar, registrarse o suscribirse.",ej:"Un botón «Comprar ahora» resaltado en un color llamativo dentro de una tienda en línea.",extra:"Su texto y color deben contrastar con el resto de la página para que no pase desapercibido."},
+{n:"Tipografía",icono:"Aa",def:"Estilo, tamaño y disposición de las letras utilizadas en el diseño de una interfaz.",imp:"Influye directamente en la legibilidad, el tono visual y la identidad de marca del producto.",ej:"Usar una fuente sans-serif grande para los títulos y una más pequeña para el texto de párrafo.",extra:"Combinar como máximo dos o tres tipografías evita que el diseño se vea desordenado."},
+{n:"Colorimetría",icono:"&#127912;",def:"Estudio y aplicación del color —incluyendo combinaciones y contrastes— para transmitir emociones y jerarquía visual.",imp:"El uso adecuado del color mejora la legibilidad y el contraste, y refuerza la identidad de marca.",ej:"Usar colores cálidos para botones de acción y colores neutros para el fondo.",extra:"Los colores cálidos (rojos, naranjas) suelen transmitir urgencia; los fríos (azules), calma y confianza."},
+{n:"Jerarquía Visual",icono:"&#128202;",def:"Orden en que se organizan los elementos de una interfaz para guiar la atención del usuario según su importancia.",imp:"Ayuda al usuario a encontrar rápidamente la información más relevante sin confusión.",ej:"Un titular en letra grande y negrita, seguido de un subtítulo menor y texto de cuerpo aún más pequeño.",extra:"Se logra combinando tamaño, color, espacio en blanco y posición de los elementos."},
+{n:"Prototipado",icono:"&#128260;",def:"Proceso de crear prototipos de manera progresiva, desde bocetos simples de baja fidelidad hasta versiones interactivas de alta fidelidad.",imp:"Permite iterar rápidamente y validar decisiones de diseño antes del desarrollo definitivo.",ej:"Pasar de un wireframe en papel a un prototipo interactivo en Figma con enlaces entre pantallas.",extra:"Herramientas como Figma o Adobe XD permiten pasar de boceto a prototipo interactivo sin escribir código."},
+{n:"Mockup",icono:"&#128444;",def:"Representación visual estática y con alto nivel de detalle gráfico que muestra cómo lucirá el producto final.",imp:"Permite visualizar el diseño final —colores, tipografía, imágenes— antes de programarlo.",ej:"Un diseño en alta fidelidad de la pantalla de inicio de una app, con colores e íconos definitivos.",extra:"A diferencia del wireframe, el mockup ya incluye colores, tipografía e imágenes definitivas."},
+{n:"Testing de Usuarios",icono:"&#129514;",def:"Proceso de evaluar un producto observando cómo usuarios reales interactúan con él, para identificar problemas de uso.",imp:"Permite detectar errores reales de usabilidad antes del lanzamiento, basándose en evidencia y no en suposiciones.",ej:"Pedir a cinco usuarios que completen una tarea en un prototipo mientras se observan sus dificultades.",extra:"Incluso probar con cinco usuarios suele revelar la mayoría de los problemas graves de usabilidad."},
+{n:"HTML",icono:"&lt;/&gt;",def:"Lenguaje de marcado estándar utilizado para estructurar el contenido de las páginas web.",imp:"Es la base fundamental sobre la que se construye cualquier sitio web, definiendo textos, imágenes y enlaces.",ej:"Usar la etiqueta &lt;h1&gt; para un título principal y &lt;p&gt; para un párrafo de texto.",extra:"Se organiza en etiquetas anidadas que forman un árbol, conocido como el DOM (Document Object Model)."},
+{n:"CSS",icono:"&#127912;",def:"Lenguaje utilizado para definir el estilo visual de una página web: colores, tipografías, espaciados y disposición.",imp:"Permite separar el contenido (HTML) de la presentación visual, facilitando un diseño consistente y responsivo.",ej:"Definir que todos los botones tengan fondo azul claro y bordes redondeados mediante una regla CSS.",extra:"Permite aplicar el mismo estilo a cientos de páginas desde un único archivo."},
+{n:"Framework",icono:"&#129521;",def:"Conjunto de herramientas, librerías y reglas predefinidas que facilitan y aceleran el desarrollo de interfaces o aplicaciones.",imp:"Ahorra tiempo de desarrollo al ofrecer soluciones ya probadas para problemas comunes.",ej:"Usar Bootstrap o Tailwind CSS para crear rápidamente una interfaz responsiva.",extra:"Existen frameworks de frontend (como React) y de backend (como Laravel), cada uno resolviendo distintos problemas."},
+{n:"Frontend",icono:"&#127760;",def:"Parte de una aplicación con la que el usuario interactúa directamente en su navegador o dispositivo.",imp:"Es responsable de la presentación visual y la experiencia de uso, uniendo el diseño con la funcionalidad.",ej:"El desarrollo de la interfaz visual de una tienda en línea usando HTML, CSS y JavaScript.",extra:"Trabaja de la mano con el backend, la parte del sistema que el usuario no ve directamente."},
+{n:"Responsive Web Design",icono:"&#128241;",def:"Técnica de diseño que permite que una página web se adapte automáticamente al tamaño de pantalla del dispositivo utilizado.",imp:"Garantiza una experiencia de uso consistente en computadoras, tablets y teléfonos móviles.",ej:"Un menú que se muestra horizontal en escritorio y se convierte en un menú hamburguesa en móvil.",extra:"Se apoya en unidades flexibles (%, rem) y en 'media queries' de CSS para adaptar el diseño."}
+];
+
+const grid = document.getElementById('grid');
+const glosarioList = document.getElementById('glosarioList');
+
+function cardHTML(t){
+  return `<div class="icon">${t.icono}</div><h3>${t.n}</h3>`;
+}
+
+terminos.forEach((t,i)=>{
+  const card = document.createElement('div');
+  card.className='card';
+  card.innerHTML = cardHTML(t);
+  card.addEventListener('click',()=>abrirTermino(i));
+  grid.appendChild(card);
+
+  const link = document.createElement('button');
+  link.className='term-link'; link.textContent=t.n;
+  link.addEventListener('click',()=>{abrirTermino(i); closeSidebar();});
+  glosarioList.appendChild(link);
+});
+
+function abrirTermino(i){
+  const t = terminos[i];
+  document.getElementById('tIcon').innerHTML = t.icono;
+  document.getElementById('tNombre').textContent = t.n;
+  document.getElementById('tDef').textContent = t.def;
+  document.getElementById('tImp').textContent = t.imp;
+  document.getElementById('tEj').textContent = t.ej;
+  document.getElementById('tExtra').textContent = t.extra;
+  showView('termino');
+}
+document.getElementById('backBtn').addEventListener('click',()=>showView('glosario'));
+
+function showView(name){
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('active'));
+  document.getElementById('vista-'+name).classList.add('active');
+  document.querySelectorAll('.nav-link[data-view]').forEach(b=>b.classList.toggle('act',b.dataset.view===name||(name==='termino'&&b.dataset.view==='glosario')));
+  window.scrollTo({top:0});
+}
+showView('inicio');
+document.querySelectorAll('.nav-link[data-view]').forEach(b=>{
+  b.addEventListener('click',()=>{showView(b.dataset.view); closeSidebar();});
+});
+
+const sidebar=document.getElementById('sidebar'), overlay=document.getElementById('overlay');
+function openSidebar(){sidebar.classList.add('open'); overlay.classList.add('show');}
+function closeSidebar(){sidebar.classList.remove('open'); overlay.classList.remove('show');}
+document.getElementById('menuBtn').addEventListener('click',openSidebar);
+document.getElementById('closeMenu').addEventListener('click',closeSidebar);
+overlay.addEventListener('click',closeSidebar);
+
+/* ---- Tema claro/oscuro ---- */
+const html = document.documentElement, themeBtn = document.getElementById('themeBtn');
+function aplicarTema(t){
+  html.setAttribute('data-theme', t);
+  themeBtn.innerHTML = t==='dark' ? '&#9728;&#65039;' : '&#127769;';
+  try{ localStorage.setItem('glosario-tema', t); }catch(e){}
+}
+let temaGuardado = 'light';
+try{ temaGuardado = localStorage.getItem('glosario-tema') || 'light'; }catch(e){}
+aplicarTema(temaGuardado);
+themeBtn.addEventListener('click',()=>{
+  aplicarTema(html.getAttribute('data-theme')==='dark' ? 'light' : 'dark');
+});
+
+/* ---- Fondo animado con letras ---- */
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+const chars = ['<>','UI','UX','{ }','CSS','</>','#fff','div','px'];
+let particulas = [];
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+function crearParticulas(){
+  particulas = [];
+  const n = Math.max(14, Math.floor(window.innerWidth/90));
+  for(let i=0;i<n;i++){
+    particulas.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      s: 14+Math.random()*20,
+      v: 0.15+Math.random()*0.35,
+      c: chars[Math.floor(Math.random()*chars.length)]
+    });
+  }
+}
+window.addEventListener('resize', ()=>{resize(); crearParticulas();});
+resize(); crearParticulas();
+function animar(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const color = getComputedStyle(html).getPropertyValue('--letra-fondo');
+  ctx.fillStyle = color;
+  particulas.forEach(p=>{
+    ctx.font = p.s+'px monospace';
+    ctx.fillText(p.c, p.x, p.y);
+    p.y -= p.v;
+    if(p.y < -30){ p.y = canvas.height+20; p.x = Math.random()*canvas.width; }
+  });
+  requestAnimationFrame(animar);
+}
+animar();
+
+/* ---- Música ambiental (generada con Web Audio, sin archivos externos) ---- */
+const musicBtn = document.getElementById('musicBtn');
+let audioCtx=null, master=null, sonando=false, timer=null, paso=0;
+const escala=[261.63,329.63,392.00,523.25,392.00,329.63,293.66,349.23,440.00,587.33,440.00,349.23];
+const bajos=[130.81,130.81,146.83,174.61];
+function nota(freq,t,dur,tipo,vol){
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=tipo; o.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t+dur+0.05);
+}
+function programar(){
+  const t=audioCtx.currentTime+0.05;
+  for(let k=0;k<4;k++){
+    const idx=(paso+k)%escala.length;
+    nota(escala[idx],t+k*0.3,0.55,'triangle',0.5);
+  }
+  if(paso%4===0) nota(bajos[(paso/4)%bajos.length],t,1.2,'sine',0.6);
+  paso=(paso+4)%escala.length;
+}
+function iniciarAudio(){
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  master=audioCtx.createGain();
+  master.gain.value=0.35;
+  master.connect(audioCtx.destination);
+}
+function play(){
+  if(!audioCtx) iniciarAudio();
+  audioCtx.resume().then(()=>{
+    programar();
+    timer=setInterval(programar,1200);
+  });
+  sonando=true; musicBtn.innerHTML='&#128266;'; musicBtn.classList.add('on');
+}
+function stop(){
+  clearInterval(timer); timer=null;
+  sonando=false; musicBtn.innerHTML='&#128264;'; musicBtn.classList.remove('on');
+}
+musicBtn.addEventListener('click',()=>{ sonando ? stop() : play(); });
+</script>
+</body>
+</html>
